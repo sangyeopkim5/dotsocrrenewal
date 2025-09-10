@@ -51,21 +51,21 @@ def attach_picture_children(
     *,
     dedup_exact: bool = True,
 ) -> Dict[str, Any]:
-    """Attach PictureText children to each Picture block in ``dots_layout``.
+    """Attach PictureText blocks under ``picture-children`` for each Picture.
 
-    ``per_picture_grounding`` is a list of pairs where the first element is the
-    Picture block reference from ``dots_layout['blocks']`` and the second is the
-    grounding OCR JSON result for that picture.
+    ``per_picture_grounding`` is a list of tuples ``(picture_block, grounding)``
+    where ``picture_block`` is a reference to a block from
+    ``dots_layout['blocks']`` and ``grounding`` is the second-pass OCR JSON.
     """
     blocks = dots_layout.get("blocks", [])
     for pic, gjson in per_picture_grounding:
         if pic.get("category") != "Picture":
             continue
-        pic.setdefault("children", [])
+        children = pic.get("picture-children", [])
 
         seen = set()
         if dedup_exact:
-            for ch in pic["children"]:
+            for ch in children:
                 if ch.get("category") == "PictureText" and "text" in ch and "bbox" in ch:
                     seen.add((_bbox_key(ch["bbox"]), ch["text"]))
 
@@ -86,9 +86,14 @@ def attach_picture_children(
                 key = (_bbox_key(tb), text)
                 if key in seen:
                     continue
-            pic["children"].append(_to_picturetext_block(blk))
+            children.append(_to_picturetext_block(blk))
             if dedup_exact:
                 seen.add((_bbox_key(tb), text))
+
+        if children:
+            pic["picture-children"] = children
+        else:
+            pic.pop("picture-children", None)
 
     meta = dots_layout.get("meta", {})
     meta["merge_version"] = "hier-v1"

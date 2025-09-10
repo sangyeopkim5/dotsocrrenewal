@@ -1,7 +1,8 @@
 """Orchestrate two-pass OCR with hierarchical PictureText merging."""
 import argparse
 import json
-import sys
+import shutil
+from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from adapters.dots_client import run_grounding, run_layout
@@ -45,12 +46,32 @@ def process_page(
     return merged
 
 
+def save_outputs(blocks: List[Dict[str, Any]], image_path: str, out_dir: str, problem_name: str) -> None:
+    """Persist blocks JSON, markdown stub, and image copy in ``out_dir/problem``."""
+    base = Path(out_dir) / problem_name
+    base.mkdir(parents=True, exist_ok=True)
+
+    json_path = base / f"{problem_name}.json"
+    with open(json_path, "w", encoding="utf-8") as jf:
+        json.dump(blocks, jf, ensure_ascii=False, indent=2)
+
+    md_path = base / f"{problem_name}.md"
+    with open(md_path, "w", encoding="utf-8") as mf:
+        mf.write(f"# OCR result for {problem_name}\n")
+
+    img_ext = Path(image_path).suffix or ".jpg"
+    img_path = base / f"{problem_name}{img_ext}"
+    shutil.copy(image_path, img_path)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--image", required=True, help="Input image or rasterized PDF page")
     ap.add_argument("--layout-prompt", default="prompt_layout_all_en")
     ap.add_argument("--grounding-prompt", default="prompt_grounding_ocr")
     ap.add_argument("--max-pictures-per-page", type=int, default=12)
+    ap.add_argument("--out-dir", default="output", help="Directory to store results")
+    ap.add_argument("--problem-name", default=None, help="Folder name under out-dir")
     args = ap.parse_args()
 
     out = process_page(
@@ -59,8 +80,8 @@ def main() -> None:
         grounding_prompt=args.grounding_prompt,
         max_pictures_per_page=args.max_pictures_per_page,
     )
-    json.dump(out, sys.stdout, ensure_ascii=False)
-    sys.stdout.write("\n")
+    problem_name = args.problem_name or Path(args.image).stem
+    save_outputs(out.get("blocks", []), args.image, args.out_dir, problem_name)
 
 
 if __name__ == "__main__":
