@@ -6,11 +6,13 @@ from typing import Any, Dict, List, Optional
 
 
 def _run_parser(img_path: str, prompt: str, bbox: Optional[List[float]] = None) -> Dict[str, Any]:
-    """Invoke dots_ocr/parser.py and return parsed JSON output.
+    """Invoke dots_ocr/parser.py and return parsed layout data.
 
-    The parser writes its results to a JSONL file inside the provided output
-    directory. This helper runs the parser inside a temporary directory and
-    loads the first JSON object from the resulting file.
+    The parser writes a JSONL file containing metadata about the run. The
+    metadata includes a ``layout_info_path`` field pointing to a JSON file with
+    the actual layout blocks. This helper runs the parser inside a temporary
+    directory, loads the metadata, then reads the layout JSON to return a
+    consolidated object of the form ``{"blocks": [...], "meta": {...}}``.
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         cmd = [
@@ -30,14 +32,28 @@ def _run_parser(img_path: str, prompt: str, bbox: Optional[List[float]] = None) 
         jsonl_path = os.path.join(tmpdir, f"{base}.jsonl")
         with open(jsonl_path, "r", encoding="utf-8") as f:
             lines = [json.loads(line) for line in f if line.strip()]
-        return lines[0] if lines else {}
+
+        meta: Dict[str, Any] = lines[0] if lines else {}
+        blocks: List[Dict[str, Any]] = []
+        layout_path = meta.get("layout_info_path")
+        if layout_path and os.path.exists(layout_path):
+            with open(layout_path, "r", encoding="utf-8") as layout_file:
+                blocks = json.load(layout_file)
+
+        return {"blocks": blocks, "meta": meta}
 
 
 def run_layout(img_path: str, prompt: str) -> Dict[str, Any]:
-    """Run dots.ocr once to obtain the full-page layout."""
+    """Run dots.ocr once to obtain the full-page layout.
+
+    Returns a dictionary containing ``blocks`` and ``meta``.
+    """
     return _run_parser(img_path, prompt)
 
 
 def run_grounding(img_path: str, bbox_xyxy: List[float], prompt: str) -> Dict[str, Any]:
-    """Run dots.ocr within a bounding box to extract picture text."""
+    """Run dots.ocr within a bounding box to extract picture text.
+
+    Returns a dictionary containing ``blocks`` and ``meta``.
+    """
     return _run_parser(img_path, prompt, bbox=bbox_xyxy)
