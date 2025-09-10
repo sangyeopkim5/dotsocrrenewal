@@ -23,7 +23,7 @@ dots.ocr: Multilingual Document Layout Parsing in a Single Vision-Language Model
 
 
 
-## Introduction
+## Introduction1
 
 **dots.ocr** is a powerful, multilingual document parser that unifies layout detection and content recognition within a single vision-language model while maintaining good reading order. Despite its compact 1.7B-parameter LLM foundation, it achieves state-of-the-art(SOTA) performance.
 
