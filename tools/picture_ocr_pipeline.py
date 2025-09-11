@@ -4,7 +4,7 @@
 Two-pass OCR pipeline (minimal, fixed):
 
 1. Pass1: dots.ocr with prompt_layout_all_en on the full original image.
-   → produces <stem>.json / <stem>.md / <stem>.jpg
+   → produces <stem>.json / <stem>.md / <stem>.png
 
 2. Pass2: For each Picture block in Pass1 JSON:
    → crop the bbox region from the ORIGINAL input image
@@ -13,8 +13,8 @@ Two-pass OCR pipeline (minimal, fixed):
    → insert as "picture-children" inside the Picture block
 
 3. Save merged JSON back to <stem>.json (overwriting Pass1 JSON).
-   .md and .jpg remain from Pass1.
-   Crop images (<stem>__pic_i{n}.jpg) are saved for inspection.
+   .md and .png remain from Pass1.
+   Crop images (<stem>__pic_i{n}.png) are saved for inspection.
 """
 
 import argparse, json, os, shutil
@@ -38,7 +38,7 @@ def _crop_save(original_img: str, bbox: List[int], save_path: str):
     x1, y1, x2, y2 = map(int, bbox)
     im = Image.open(original_img).convert("RGB")
     crop = im.crop((x1, y1, x2, y2))
-    crop.save(save_path, quality=95)
+    crop.save(save_path.with_suffix(".png"), format="PNG", optimize=True, compress_level=1)
 
 def _blocks_to_children(blocks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Convert Text/Formula blocks to PictureText children."""
@@ -77,8 +77,8 @@ def run_pipeline(parser: "DotsOCRParser", input_path: str):
                 continue
 
             # crop from ORIGINAL input image
-            crop_jpg = page_dir / f"{page_stem}__pic_i{idx}.jpg"
-            _crop_save(input_path, bbox, str(crop_jpg))
+            crop_png = page_dir / f"{page_stem}__pic_i{idx}.png"
+            _crop_save(input_path, bbox, str(crop_png))
 
             # run dots.ocr again on the crop with layout_all_en
             tmp_out = page_dir / f"__tmp_pic_i{idx}"

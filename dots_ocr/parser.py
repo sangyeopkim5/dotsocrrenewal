@@ -186,7 +186,7 @@ class DotsOCRParser:
                 with open(json_file_path, 'w', encoding="utf-8") as w:
                     json.dump(response, w, ensure_ascii=False)
 
-                image_layout_path = os.path.join(save_dir, f"{save_name}.jpg")
+                image_layout_path = os.path.join(save_dir, f"{save_name}.png")
                 origin_image.save(image_layout_path)
                 result.update({
                     'layout_info_path': json_file_path,
@@ -213,7 +213,7 @@ class DotsOCRParser:
                 with open(json_file_path, 'w', encoding="utf-8") as w:
                     json.dump(cells, w, ensure_ascii=False)
 
-                image_layout_path = os.path.join(save_dir, f"{save_name}.jpg")
+                image_layout_path = os.path.join(save_dir, f"{save_name}.png")
                 image_with_layout.save(image_layout_path)
                 result.update({
                     'layout_info_path': json_file_path,
@@ -233,7 +233,7 @@ class DotsOCRParser:
                         'md_content_nohf_path': md_nohf_file_path,
                     })
         else:
-            image_layout_path = os.path.join(save_dir, f"{save_name}.jpg")
+            image_layout_path = os.path.join(save_dir, f"{save_name}.png")
             origin_image.save(image_layout_path)
             result.update({
                 'layout_image_path': image_layout_path,

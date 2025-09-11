@@ -1068,7 +1068,7 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
 
-image_path = "demo/demo_image1.jpg"
+image_path = "demo/demo_image1.png"
 prompt = """Please output the layout information from the PDF image, including each layout element's bbox, its category, and the corresponding text content within the bbox.
 
 1. Bbox format: [x1, y1, x2, y2]
@@ -1142,21 +1142,21 @@ Please refer to [CPU inference](https://github.com/rednote-hilab/dots.ocr/issues
 
 # Parse all layout info, both detection and recognition
 # Parse a single image
-python3 dots_ocr/parser.py demo/demo_image1.jpg
+python3 dots_ocr/parser.py demo/demo_image1.png
 # Parse a single PDF
 python3 dots_ocr/parser.py demo/demo_pdf1.pdf  --num_thread 64  # try bigger num_threads for pdf with a large number of pages
 
 # Layout detection only
-python3 dots_ocr/parser.py demo/demo_image1.jpg --prompt prompt_layout_only_en
+python3 dots_ocr/parser.py demo/demo_image1.png --prompt prompt_layout_only_en
 
 # Parse text only, except Page-header and Page-footer
-python3 dots_ocr/parser.py demo/demo_image1.jpg --prompt prompt_ocr
+python3 dots_ocr/parser.py demo/demo_image1.png --prompt prompt_ocr
 
 # Parse layout info by bbox
-python3 dots_ocr/parser.py demo/demo_image1.jpg --prompt prompt_grounding_ocr --bbox 163 241 1536 705
+python3 dots_ocr/parser.py demo/demo_image1.png --prompt prompt_grounding_ocr --bbox 163 241 1536 705
 
 # Parse layout and run picture-in-picture OCR
-python3 tools/picture_ocr_pipeline.py demo/demo_image1.jpg
+python3 tools/picture_ocr_pipeline.py demo/demo_image1.png
 
 ```
 **Based on Transformers**, you can parse an image or a pdf file using the same commands above, just add `--use_hf true`.
@@ -1169,7 +1169,7 @@ python3 tools/picture_ocr_pipeline.py demo/demo_image1.jpg
 1.  **Structured Layout Data** (`demo_image1.json`): A JSON file containing the detected layout elements, including their bounding boxes, categories, and extracted text.
 2.  **Processed Markdown File** (`demo_image1.md`): A Markdown file generated from the concatenated text of all detected cells.
     *   An additional version, `demo_image1_nohf.md`, is also provided, which excludes page headers and footers for compatibility with benchmarks like Omnidocbench and olmOCR-bench.
-3.  **Layout Visualization** (`demo_image1.jpg`): The original image with the detected layout bounding boxes drawn on it.
+3.  **Layout Visualization** (`demo_image1.png`): The original image with the detected layout bounding boxes drawn on it.
 
 </details>
 
